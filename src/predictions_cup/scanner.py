@@ -49,7 +49,7 @@ class PriceScanner:
                 continue
             update = PriceUpdate.from_ticker(ticker, market.metadata.get("market_id", ""))
             if self._executor is not None:
-                self._executor.mark_price(update)
+                self._executor.process_price_update(update)
             for strategy in self._strategies:
                 await strategy.handle_price_update(update)
             updates.append(update)

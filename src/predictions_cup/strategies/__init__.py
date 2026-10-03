@@ -1,4 +1,6 @@
-"""Strategy interface, adapted from PolyBot `src/polybot/strategies/`."""
+"""Strategies, adapted from PolyBot `src/polybot/strategies/`."""
+
+from typing import Dict, Type
 
 from predictions_cup.strategies.base import (
     BaseStrategy,
@@ -6,5 +8,18 @@ from predictions_cup.strategies.base import (
     StrategyConfig,
     StrategyState,
 )
+from predictions_cup.strategies.spread_farm import SpreadFarmConfig, SpreadFarmStrategy
 
-__all__ = ["BaseStrategy", "SignalHandler", "StrategyConfig", "StrategyState"]
+STRATEGIES: Dict[str, Type[BaseStrategy]] = {
+    SpreadFarmStrategy.name: SpreadFarmStrategy,
+}
+
+__all__ = [
+    "STRATEGIES",
+    "BaseStrategy",
+    "SignalHandler",
+    "SpreadFarmConfig",
+    "SpreadFarmStrategy",
+    "StrategyConfig",
+    "StrategyState",
+]

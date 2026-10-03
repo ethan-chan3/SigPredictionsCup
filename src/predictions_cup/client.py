@@ -23,6 +23,7 @@ DOCS_URL = "https://sig.thesuper.market/api/v1/docs"
 
 ENV_API_KEY = "PREDICTIONS_CUP_API_KEY"
 ENV_BASE_URL = "PREDICTIONS_CUP_BASE_URL"
+ENV_TIMEOUT = "PREDICTIONS_CUP_TIMEOUT"
 
 # The spec's `servers` list "https://www.thesuper.market/api/v1" (Production) and
 # "/api/v1" (Current environment). The docs are served from sig.thesuper.market, so
@@ -85,7 +86,12 @@ class ClientConfig:
                 f"Missing required environment variable: {ENV_API_KEY}. "
                 "Set it in your shell or in a local .env file (see .env.example)."
             )
-        return cls(api_key=api_key, base_url=base_url.rstrip("/"))
+        timeout = os.environ.get(ENV_TIMEOUT, "").strip()
+        try:
+            timeout_sec = float(timeout) if timeout else 10.0
+        except ValueError:
+            raise ConfigError(f"{ENV_TIMEOUT} must be a number of seconds, got {timeout!r}") from None
+        return cls(api_key=api_key, base_url=base_url.rstrip("/"), timeout=timeout_sec)
 
 
 class PredictionsCupClient:

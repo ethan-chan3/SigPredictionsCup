@@ -14,7 +14,7 @@ import inspect
 import logging
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional, Union
 
 from predictions_cup.messages import PriceUpdate, Signal, SignalAction
@@ -96,6 +96,18 @@ class BaseStrategy(ABC):
 
     def set_signal_handler(self, handler: Optional[SignalHandler]) -> None:
         self._signal_handler = handler
+
+    def configure(self, **overrides: Any) -> None:
+        """Override config fields, coercing string values to each field's current type."""
+        updates = {}
+        for key, value in overrides.items():
+            if not hasattr(self._config, key):
+                raise ValueError(f"{type(self._config).__name__} has no field {key!r}")
+            current = getattr(self._config, key)
+            if isinstance(value, str) and not isinstance(current, str):
+                value = value.lower() in ("1", "true", "yes") if isinstance(current, bool) else type(current)(value)
+            updates[key] = value
+        self._config = replace(self._config, **updates)
 
     def set_positions(self, positions: Iterable[Position]) -> None:
         """Replace the strategy's tracked positions (e.g. from `venue.get_positions()`).
@@ -196,6 +208,12 @@ class BaseStrategy(ABC):
 
     async def _on_stop(self) -> None:
         pass
+
+    def on_fill(self, signal: Signal, side: str, size: float, price: float) -> None:
+        """Called by the executor when one of this strategy's orders fills ("BUY"/"SELL")."""
+
+    def on_cancel(self, signal: Signal, reason: str) -> None:
+        """Called by the executor when an order is rejected, expires, or is replaced."""
 
     # =========================================================================
     # Utilities

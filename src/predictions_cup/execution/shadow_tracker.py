@@ -217,8 +217,13 @@ class ShadowPositionTracker:
         confidence: float = 0.0,
         bid: Optional[float] = None,
         ask: Optional[float] = None,
+        fill_price: Optional[float] = None,
     ) -> Optional[ShadowTrade]:
-        """Simulate a signal. Returns the trade, or None for a CLOSE with no position."""
+        """Simulate a signal. Returns the trade, or None for a CLOSE with no position.
+
+        `fill_price` overrides the fill assumption (used for resting limit orders,
+        which fill at their own price).
+        """
         if strategy not in self._positions:
             self._positions[strategy] = {}
             self._trades[strategy] = []
@@ -243,7 +248,8 @@ class ShadowPositionTracker:
             market_price = bid if bid is not None else ask if ask is not None else signal_price
         self.update_price(exchange_id, market_price)
 
-        fill_price = self._calculate_fill_price(signal_price, trade_side, bid, ask)
+        if fill_price is None:
+            fill_price = self._calculate_fill_price(signal_price, trade_side, bid, ask)
 
         self._trade_counter += 1
         trade = ShadowTrade(
